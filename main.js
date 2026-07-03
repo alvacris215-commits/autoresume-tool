@@ -73,23 +73,25 @@ async function applyProxy(config) {
       await sess.setProxy({ proxyRules });
       logger.proxy('setProxy OK on partition:', sess === session.defaultSession ? 'default' : 'webview');
     }
-    // Wire credential handler on each session (needed when proxy requires auth)
-    if (config.username) {
-      for (const sess of sessions) {
-        sess.removeAllListeners('login');
-        sess.on('login', (event, authInfo, callback) => {
-          if (authInfo.isProxy) {
-            logger.proxy('Proxy auth challenge — providing credentials for:', authInfo.host);
-            event.preventDefault();
-            callback(config.username, config.password || '');
-          }
-        });
-      }
-      logger.proxy('Proxy auth handler registered (username:', config.username + ')');
+
+    // Wire credential handler on each session.
+    // IMPORTANT: session login event signature is (event, webContents, authInfo, callback) — 4 params.
+    for (const sess of sessions) {
+      sess.removeAllListeners('login');
+      sess.on('login', (event, webContents, authInfo, callback) => {
+        logger.proxy('Session login event — isProxy:', authInfo.isProxy, 'host:', authInfo.host);
+        if (authInfo.isProxy) {
+          logger.proxy('Providing proxy credentials for:', authInfo.host);
+          event.preventDefault();
+          callback(config.username || '', config.password || '');
+        }
+      });
     }
+    logger.proxy('Proxy auth handlers registered (username:', config.username + ')');
   } else {
     logger.proxy('Clearing proxy on', sessions.length, 'sessions');
     for (const sess of sessions) {
+      sess.removeAllListeners('login');
       await sess.setProxy({ proxyRules: '' });
     }
   }
@@ -166,14 +168,20 @@ ipcMain.handle('test-proxy', async (event, config) => {
   const proxyRules  = `http=${config.host}:${config.port};https=${config.host}:${config.port}`;
   await testSession.setProxy({ proxyRules });
 
-  if (config.username) {
-    testSession.on('login', (ev, authInfo, callback) => {
-      if (authInfo.isProxy) { ev.preventDefault(); callback(config.username, config.password || ''); }
-    });
-  }
-
   return new Promise((resolve) => {
     const req = net.request({ method: 'HEAD', url: 'https://www.google.com', session: testSession });
+
+    // net.request login event: (authInfo, callback) — no event.preventDefault() needed
+    req.on('login', (authInfo, callback) => {
+      logger.proxy('Test req auth challenge — isProxy:', authInfo.isProxy, 'host:', authInfo.host);
+      if (authInfo.isProxy) {
+        logger.proxy('Providing test credentials');
+        callback(config.username || '', config.password || '');
+      } else {
+        callback('', '');
+      }
+    });
+
     const timeout = setTimeout(() => {
       req.abort();
       logger.proxy('Test timed out');
@@ -181,12 +189,16 @@ ipcMain.handle('test-proxy', async (event, config) => {
     }, 8000);
     req.on('response', (res) => {
       clearTimeout(timeout);
-      logger.proxy('Test succeeded, status:', res.statusCode);
-      resolve({ success: true, message: `Connected — HTTP ${res.statusCode}` });
+      logger.proxy('Test response status:', res.statusCode);
+      if (res.statusCode === 407) {
+        resolve({ success: false, message: 'Proxy auth failed (407) — check username/password' });
+      } else {
+        resolve({ success: true, message: `Connected — HTTP ${res.statusCode}` });
+      }
     });
     req.on('error', (err) => {
       clearTimeout(timeout);
-      logger.proxy('Test failed:', err.message);
+      logger.proxy('Test error:', err.message);
       resolve({ success: false, message: err.message });
     });
     req.end();
