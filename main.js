@@ -89,28 +89,30 @@ ipcMain.handle('get-proxy-config', async () => {
 });
 
 ipcMain.handle('test-proxy', async (event, config) => {
+  // Use an isolated throwaway session so defaultSession is never touched
+  const testSession = session.fromPartition('temp:proxy-test', { cache: false });
+  const proxyRules = `http=${config.host}:${config.port};https=${config.host}:${config.port}`;
+  await testSession.setProxy({ proxyRules });
+
   return new Promise((resolve) => {
-    const proxyRules = `http=${config.host}:${config.port};https=${config.host}:${config.port}`;
-    session.defaultSession.setProxy({ proxyRules }).then(() => {
-      const req = net.request({
-        method: 'HEAD',
-        url: 'https://www.google.com',
-        session: session.defaultSession,
-      });
-      const timeout = setTimeout(() => {
-        req.abort();
-        resolve({ success: false, message: 'Timeout after 8s' });
-      }, 8000);
-      req.on('response', (res) => {
-        clearTimeout(timeout);
-        resolve({ success: true, message: `Connected — HTTP ${res.statusCode}` });
-      });
-      req.on('error', (err) => {
-        clearTimeout(timeout);
-        resolve({ success: false, message: err.message });
-      });
-      req.end();
+    const req = net.request({
+      method: 'HEAD',
+      url: 'https://www.google.com',
+      session: testSession,
     });
+    const timeout = setTimeout(() => {
+      req.abort();
+      resolve({ success: false, message: 'Timeout after 8s' });
+    }, 8000);
+    req.on('response', (res) => {
+      clearTimeout(timeout);
+      resolve({ success: true, message: `Connected — HTTP ${res.statusCode}` });
+    });
+    req.on('error', (err) => {
+      clearTimeout(timeout);
+      resolve({ success: false, message: err.message });
+    });
+    req.end();
   });
 });
 
