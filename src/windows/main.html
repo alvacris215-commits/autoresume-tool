@@ -18,7 +18,6 @@
       align-items: center;
       height: var(--titlebar-h);
       background: var(--grad-titlebar);
-      border-bottom: none;
       flex-shrink: 0;
       -webkit-app-region: drag;
       position: relative;
@@ -31,151 +30,244 @@
       background: linear-gradient(90deg, transparent 0%, var(--cyan) 30%, var(--purple) 70%, transparent 100%);
       opacity: 0.7;
     }
-    .tb-left {
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-      gap: 10px;
-      flex: 1;
-    }
+    .tb-left { display: flex; align-items: center; padding: 0 16px; gap: 10px; flex: 1; }
     .tb-app-name {
-      font-size: 13px;
-      letter-spacing: 4px;
-      text-transform: uppercase;
+      font-size: 13px; letter-spacing: 4px; text-transform: uppercase;
       background: var(--grad-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       filter: drop-shadow(0 0 8px var(--glow-cyan));
     }
     .tb-center {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      -webkit-app-region: no-drag;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--text-muted); -webkit-app-region: no-drag;
     }
     .tb-right {
-      display: flex;
-      align-items: center;
-      padding: 0 12px;
-      gap: 10px;
-      flex: 1;
-      justify-content: flex-end;
-      -webkit-app-region: no-drag;
+      display: flex; align-items: center; padding: 0 12px; gap: 10px;
+      flex: 1; justify-content: flex-end; -webkit-app-region: no-drag;
     }
 
     /* ── Split container ── */
-    .split-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    .split-container { display: flex; flex: 1; overflow: hidden; position: relative; }
 
-    /* ── Individual panels ── */
-    .panel {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      min-width: 200px;
-    }
+    /* ── Panels ── */
+    .panel { display: flex; flex-direction: column; overflow: hidden; min-width: 200px; }
     #leftPanel  { flex: 0 0 50%; }
     #rightPanel { flex: 1; }
 
     /* ── Divider ── */
     .divider-drag {
-      width: 4px;
-      background: var(--border);
-      cursor: col-resize;
-      flex-shrink: 0;
-      transition: all var(--transition);
-      position: relative;
+      width: 4px; background: var(--border); cursor: col-resize;
+      flex-shrink: 0; transition: all var(--transition); position: relative;
     }
-    .divider-drag:hover,
-    .divider-drag.dragging {
+    .divider-drag:hover, .divider-drag.dragging {
       background: linear-gradient(180deg, var(--cyan), var(--purple), var(--pink));
       box-shadow: 0 0 12px var(--glow-cyan), 0 0 8px var(--glow-purple);
     }
 
     /* ── Webviews ── */
-    webview {
-      flex: 1;
-      width: 100%;
-      border: none;
-      background: #000;
-    }
+    webview { flex: 1; width: 100%; border: none; background: #000; }
 
-    /* ── Reload button in panel header ── */
+    /* ── Panel header ── */
+    .panel-header { position: relative; }
     .reload-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 14px;
-      padding: 2px 6px;
-      border-radius: var(--radius);
-      transition: var(--transition);
-      -webkit-app-region: no-drag;
-      line-height: 1;
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 14px; padding: 2px 6px; border-radius: var(--radius);
+      transition: var(--transition); -webkit-app-region: no-drag; line-height: 1;
     }
-    .reload-btn:hover {
-      color: var(--cyan);
-      text-shadow: 0 0 6px var(--glow-cyan);
-    }
+    .reload-btn:hover { color: var(--cyan); text-shadow: 0 0 6px var(--glow-cyan); }
 
-    /* ── Loading bar ── */
     .loading-bar {
-      height: 2px;
-      width: 0;
+      height: 2px; width: 0;
       background: linear-gradient(90deg, var(--cyan), var(--purple));
       box-shadow: 0 0 6px var(--glow-cyan);
       transition: width 0.3s, opacity 0.5s;
-      position: absolute;
-      bottom: 0;
-      left: 0;
+      position: absolute; bottom: 0; left: 0;
     }
-    .panel-header { position: relative; }
 
-    /* ── Stub modal (hidden, Phase 2) ── */
-    .modal-stub {
+    /* ── FAB — gear icon ── */
+    .fab {
+      position: fixed; bottom: 28px; right: 28px;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--grad-btn-primary); border: none; color: #fff;
+      font-size: 22px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 20px var(--glow-cyan), 0 0 40px var(--glow-purple), 0 4px 16px rgba(0,0,0,0.5);
+      transition: var(--transition); z-index: 100; -webkit-app-region: no-drag;
+    }
+    .fab:hover {
+      box-shadow: 0 0 30px var(--glow-cyan), 0 0 60px var(--glow-purple);
+      transform: scale(1.1) rotate(30deg);
+    }
+    .fab.active { transform: scale(1.1) rotate(60deg); }
+
+    /* ══════════════════════════════════════════════════════════
+       TOOL MODAL — fixed bottom-right, static (non-draggable)
+    ══════════════════════════════════════════════════════════ */
+    .tool-modal {
       display: none;
       position: fixed;
-      top: 80px;
-      right: 80px;
-      width: 320px;
-      min-height: 200px;
-      background: linear-gradient(135deg, #0c1528 0%, #12102a 100%);
+      bottom: 92px;
+      right: 28px;
+      width: 420px;
+      height: 520px;
+      background: linear-gradient(160deg, #0b1220 0%, #10102a 100%);
       border: 1px solid var(--border-purple);
-      box-shadow: 0 0 30px var(--glow-purple), 0 0 60px rgba(123,47,255,0.15), 0 8px 32px rgba(0,0,0,0.6);
+      box-shadow: 0 0 40px var(--glow-purple), 0 0 80px rgba(123,47,255,0.1), 0 12px 40px rgba(0,0,0,0.7);
       border-radius: var(--radius-lg);
-      z-index: 200;
+      z-index: 150;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
     }
-    .modal-stub.visible { display: block; }
-    .modal-stub-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
+    .tool-modal.visible { display: flex; }
+
+    /* Modal header */
+    .tm-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px 0;
+      flex-shrink: 0;
+    }
+    .tm-title {
+      font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+      background: var(--grad-primary);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .tm-close {
+      background: none; border: none; color: var(--text-muted); font-size: 16px;
+      cursor: pointer; padding: 2px 6px; border-radius: var(--radius);
+      transition: var(--transition); line-height: 1;
+    }
+    .tm-close:hover { color: var(--danger); }
+
+    /* Tabs */
+    .tm-tabs {
+      display: flex; gap: 0; padding: 12px 18px 0;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .tm-tab {
+      padding: 8px 16px; font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
+      cursor: pointer; border: none; background: none;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: var(--transition);
+    }
+    .tm-tab:hover { color: var(--text); }
+    .tm-tab.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+      text-shadow: 0 0 6px var(--glow-cyan);
+    }
+
+    /* Tab panels */
+    .tm-body { flex: 1; overflow: hidden; position: relative; }
+    .tm-panel { position: absolute; inset: 0; padding: 18px; overflow-y: auto; display: none; flex-direction: column; gap: 14px; }
+    .tm-panel.active { display: flex; }
+
+    /* Section label */
+    .tm-section-label {
+      font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    /* Find Links action button */
+    .find-links-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.08) 0%, rgba(123,47,255,0.08) 100%);
+      border: 1px solid var(--border-purple);
+      border-radius: var(--radius); cursor: pointer; font-family: var(--font-mono);
+      font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--cyan); transition: var(--transition);
+    }
+    .find-links-btn:hover {
+      background: linear-gradient(135deg, rgba(0,212,255,0.15) 0%, rgba(123,47,255,0.15) 100%);
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px var(--glow-cyan);
+    }
+    .find-links-btn .btn-icon { font-size: 18px; }
+
+    /* Drawer — results area */
+    .results-drawer {
+      flex: 1;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      overflow-y: auto;
+      min-height: 200px;
       font-size: 11px;
-      letter-spacing: 2px;
-      background: var(--grad-purple-pink);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      cursor: move;
-    }
-    .modal-stub-header .reload-btn {
-      -webkit-text-fill-color: var(--text-muted);
-    }
-    .modal-stub-body {
-      padding: 20px 16px;
       color: var(--text-muted);
-      font-size: 11px;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
+      line-height: 1.6;
+    }
+    .results-drawer.has-results { color: var(--text); }
+    .results-placeholder {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; gap: 8px; opacity: 0.4;
+    }
+    .results-placeholder .icon { font-size: 28px; }
+
+    /* Cookie status bar */
+    .cookie-status {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: var(--radius);
+      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+      font-size: 10px; letter-spacing: 1px;
+    }
+    .cookie-status .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
+    .cookie-status.ready .dot { background: var(--teal); box-shadow: 0 0 4px var(--teal); }
+    .cookie-status.error .dot { background: var(--danger); box-shadow: 0 0 4px var(--danger); }
+
+    /* Generate Resume tab placeholder */
+    .coming-soon {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; gap: 12px; opacity: 0.5;
+    }
+    .coming-soon .cs-icon { font-size: 36px; }
+    .coming-soon .cs-text { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+
+    /* ── Alert / confirm overlay ── */
+    .alert-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      z-index: 300; align-items: center; justify-content: center;
+    }
+    .alert-overlay.visible { display: flex; }
+    .alert-box {
+      background: linear-gradient(160deg, #0e1428 0%, #130f28 100%);
+      border: 1px solid var(--border-purple);
+      box-shadow: 0 0 40px var(--glow-purple), 0 16px 48px rgba(0,0,0,0.8);
+      border-radius: var(--radius-lg);
+      padding: 28px 28px 24px;
+      width: 360px; max-width: 90vw;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .alert-icon { font-size: 28px; text-align: center; }
+    .alert-title {
+      font-size: 13px; letter-spacing: 3px; text-transform: uppercase; text-align: center;
+      background: var(--grad-purple-pink);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .alert-body {
+      font-size: 11px; line-height: 1.7; color: var(--text-muted);
+      text-align: center; letter-spacing: 0.5px;
+    }
+    .alert-filter-info {
+      background: rgba(0,212,255,0.06); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 8px 12px;
+      font-size: 10px; color: var(--cyan); letter-spacing: 1px;
+      text-align: center;
+    }
+    .alert-actions { display: flex; gap: 10px; }
+    .alert-actions button { flex: 1; }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid var(--border); border-top-color: var(--cyan);
+      border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle;
     }
   </style>
 </head>
@@ -186,7 +278,6 @@
     <div class="tb-left">
       <span class="tb-app-name">&#x25A0; Proxy Browser</span>
     </div>
-
     <div class="tb-center">
       <span class="status-dot" id="proxyDot"></span>
       <span id="proxyStatusLabel">DIRECT</span>
@@ -199,7 +290,6 @@
         </div>
       </label>
     </div>
-
     <div class="tb-right">
       <button class="titlebar-btn" id="btnMin" title="Minimize">&#x2013;</button>
       <button class="titlebar-btn" id="btnMax" title="Maximize">&#x25A1;</button>
@@ -217,13 +307,9 @@
         <button class="reload-btn" id="reloadLeft" title="Reload">&#x27F3;</button>
         <div class="loading-bar" id="loadingLeft"></div>
       </div>
-      <webview
-        id="wvLeft"
-        src="https://chatgpt.com"
-        partition="persist:chatgpt"
+      <webview id="wvLeft" src="https://chatgpt.com" partition="persist:chatgpt"
         useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        allowpopups="true"
-      ></webview>
+        allowpopups="true"></webview>
     </div>
 
     <!-- Divider -->
@@ -236,28 +322,79 @@
         <button class="reload-btn" id="reloadRight" title="Reload">&#x27F3;</button>
         <div class="loading-bar" id="loadingRight"></div>
       </div>
-      <webview
-        id="wvRight"
-        src="https://jobright.ai"
-        partition="persist:jobright"
+      <webview id="wvRight" src="https://jobright.ai" partition="persist:jobright"
         useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        allowpopups="true"
-      ></webview>
+        allowpopups="true"></webview>
     </div>
 
   </div>
 
-  <!-- FAB -->
-  <button class="fab" id="fabBtn" title="Open Panel">+</button>
+  <!-- FAB — gear icon -->
+  <button class="fab" id="fabBtn" title="Tools">&#x2699;</button>
 
-  <!-- Stub Modal (Phase 2 placeholder) -->
-  <div class="modal-stub" id="modalStub">
-    <div class="modal-stub-header" id="modalHeader">
-      <span>&#x25FC; PANEL</span>
-      <button class="reload-btn" id="closeModal">&#x2715;</button>
+  <!-- Tool Modal -->
+  <div class="tool-modal" id="toolModal">
+    <div class="tm-header">
+      <span class="tm-title">&#x2699; Tools</span>
+      <button class="tm-close" id="tmClose">&#x2715;</button>
     </div>
-    <div class="modal-stub-body">
-      &#x25B6; Feature coming in Phase 2
+
+    <div class="tm-tabs">
+      <button class="tm-tab active" data-tab="findLinks">Find Links</button>
+      <button class="tm-tab" data-tab="generateResume">Generate Resume</button>
+    </div>
+
+    <div class="tm-body">
+
+      <!-- Tab: Find Links -->
+      <div class="tm-panel active" id="tab-findLinks">
+
+        <div class="cookie-status" id="cookieStatus">
+          <span class="dot"></span>
+          <span id="cookieStatusText">Cookie not loaded — click Find Links to fetch</span>
+        </div>
+
+        <button class="find-links-btn" id="btnFindLinks">
+          <span class="btn-icon">&#x1F517;</span>
+          <span>Find Links from Jobright</span>
+        </button>
+
+        <div class="tm-section-label">Results</div>
+        <div class="results-drawer" id="resultsDrawer">
+          <div class="results-placeholder">
+            <span class="icon">&#x1F50D;</span>
+            <span>No results yet — click Find Links to begin</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tab: Generate Resume -->
+      <div class="tm-panel" id="tab-generateResume">
+        <div class="coming-soon">
+          <span class="cs-icon">&#x1F4C4;</span>
+          <span class="cs-text">Coming in Phase 3</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Confirm Alert -->
+  <div class="alert-overlay" id="alertOverlay">
+    <div class="alert-box">
+      <div class="alert-icon">&#x26A0;</div>
+      <div class="alert-title">Confirm Find Links</div>
+      <div class="alert-body">
+        This will read your current Jobright filters and fetch job links using your active session.
+      </div>
+      <div class="alert-filter-info" id="alertFilterInfo">
+        Detecting current filter from Jobright...
+      </div>
+      <div class="alert-actions">
+        <button class="btn-secondary" id="alertCancel">Cancel</button>
+        <button class="btn-primary" id="alertConfirm">Yes, Find Links</button>
+      </div>
     </div>
   </div>
 

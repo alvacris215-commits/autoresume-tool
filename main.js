@@ -201,6 +201,13 @@ ipcMain.handle('test-proxy', async (event, config) => {
   });
 });
 
+ipcMain.handle('get-jobright-cookies', async () => {
+  const jobrightSession = session.fromPartition('persist:jobright');
+  const cookies = await jobrightSession.cookies.get({ url: 'https://jobright.ai' });
+  logger.info('get-jobright-cookies: found', cookies.length, 'cookies');
+  return cookies;
+});
+
 ipcMain.handle('toggle-proxy', async (event, { enabled }) => {
   logger.info('toggle-proxy:', enabled);
   useProxyEnabled = enabled;
