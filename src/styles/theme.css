@@ -1,0 +1,339 @@
+/* ============================================================
+   BLOCKCHAIN THEME — shared across all windows
+   ============================================================ */
+
+:root {
+  --bg-deep:    #000000;
+  --bg-panel:   #0a0a0a;
+  --bg-input:   #111111;
+  --bg-card:    #0d1a0d;
+  --accent:     #00ff41;
+  --accent-dim: #00cc33;
+  --accent-glow: rgba(0, 255, 65, 0.4);
+  --danger:     #ff3333;
+  --danger-glow: rgba(255, 51, 51, 0.4);
+  --text:       #00ff41;
+  --text-muted: #336633;
+  --border:     #003300;
+  --font-mono:  'Courier New', 'Lucida Console', monospace;
+  --titlebar-h: 38px;
+  --radius:     4px;
+  --transition: 0.15s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  user-select: none;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar { width: 6px; background: var(--bg-panel); }
+::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 3px; }
+
+/* ── Titlebar ── */
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--titlebar-h);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+  padding: 0 12px;
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+}
+
+.titlebar-title {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent-glow);
+}
+
+.titlebar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+.titlebar-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+.titlebar-btn.close:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  box-shadow: 0 0 6px var(--danger-glow);
+}
+
+/* ── Inputs ── */
+.input-field {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  transition: var(--transition);
+}
+.input-field::placeholder { color: var(--text-muted); }
+.input-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow), inset 0 0 4px rgba(0,255,65,0.05);
+}
+.input-field:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ── Protocol toggle group ── */
+.proto-group {
+  display: flex;
+  gap: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.proto-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: var(--bg-input);
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: var(--transition);
+}
+.proto-btn.active {
+  background: var(--bg-card);
+  color: var(--accent);
+  text-shadow: 0 0 6px var(--accent-glow);
+  box-shadow: inset 0 0 8px var(--accent-glow);
+}
+.proto-btn:not(.active):hover { color: var(--accent-dim); }
+
+/* ── Toggle switch ── */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  -webkit-app-region: no-drag;
+}
+.toggle-label { font-size: 12px; letter-spacing: 1px; color: var(--text-muted); }
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 22px;
+  cursor: pointer;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  transition: var(--transition);
+}
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: var(--transition);
+}
+.toggle-switch input:checked ~ .toggle-track {
+  border-color: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+.toggle-switch input:checked ~ .toggle-thumb {
+  transform: translateX(22px);
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 2px;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: var(--transition);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.btn-primary:hover {
+  background: var(--accent);
+  color: var(--bg-deep);
+  box-shadow: 0 0 16px var(--accent), 0 0 32px var(--accent-glow);
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: var(--transition);
+}
+.btn-secondary:hover {
+  border-color: var(--accent-dim);
+  color: var(--accent-dim);
+}
+
+/* ── Panel header (main window panels) ── */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.panel-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -100%;
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scan 3s linear infinite;
+}
+@keyframes scan {
+  0%   { left: -60%; }
+  100% { left: 100%; }
+}
+.panel-title {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 6px var(--accent-glow);
+}
+
+/* ── Grid overlay background ── */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(0,255,65,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,65,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ── Glow text ── */
+.glow-text {
+  color: var(--accent);
+  text-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent-glow);
+}
+
+/* ── Status dot ── */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  margin-right: 6px;
+  transition: var(--transition);
+}
+.status-dot.on {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent), 0 0 10px var(--accent-glow);
+}
+
+/* ── FAB ── */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px var(--accent-glow), 0 0 24px rgba(0,255,65,0.15);
+  transition: var(--transition);
+  z-index: 100;
+  -webkit-app-region: no-drag;
+}
+.fab:hover {
+  box-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent-glow);
+  transform: scale(1.08);
+}
+
+/* ── Connection badge ── */
+.conn-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.conn-badge.visible { opacity: 1; }
+.conn-badge.success {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.conn-badge.failure {
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  box-shadow: 0 0 8px var(--danger-glow);
+}
