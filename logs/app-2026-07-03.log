@@ -1,0 +1,46 @@
+[2026-07-03T22:02:40.969Z] [INFO ] App starting, log file: D:\working\autoresume-tool\logs\app-2026-07-03.log
+[2026-07-03T22:02:41.004Z] [INFO ] app ready
+[2026-07-03T22:02:41.108Z] [INFO ] Loaded saved config, useProxy: true
+[2026-07-03T22:02:41.116Z] [PROXY] Applying proxy rules: http=168.158.124.69:12323;https=168.158.124.69:12323 to 3 sessions
+[2026-07-03T22:02:41.125Z] [PROXY] setProxy OK on partition: default
+[2026-07-03T22:02:41.128Z] [PROXY] setProxy OK on partition: webview
+[2026-07-03T22:02:41.130Z] [PROXY] setProxy OK on partition: webview
+[2026-07-03T22:02:41.130Z] [PROXY] Proxy auth handler registered (username: 14a56d09e7b7d)
+[2026-07-03T22:02:41.131Z] [INFO ] Creating settings window
+[2026-07-03T22:02:41.377Z] [INFO ] get-proxy-config returning useProxy: true
+[2026-07-03T22:02:45.139Z] [INFO ] save-proxy-config called, useProxy: true host: 168.158.124.69 port: 12323
+[2026-07-03T22:02:45.149Z] [PROXY] Applying proxy rules: http=168.158.124.69:12323;https=168.158.124.69:12323 to 3 sessions
+[2026-07-03T22:02:45.149Z] [PROXY] setProxy OK on partition: default
+[2026-07-03T22:02:45.150Z] [PROXY] setProxy OK on partition: webview
+[2026-07-03T22:02:45.150Z] [PROXY] setProxy OK on partition: webview
+[2026-07-03T22:02:45.150Z] [PROXY] Proxy auth handler registered (username: 14a56d09e7b7d)
+[2026-07-03T22:02:45.151Z] [INFO ] launch-main-window received, proxy enabled: true
+[2026-07-03T22:02:45.151Z] [PROXY] Applying proxy rules: http=168.158.124.69:12323;https=168.158.124.69:12323 to 3 sessions
+[2026-07-03T22:02:45.152Z] [PROXY] setProxy OK on partition: default
+[2026-07-03T22:02:45.152Z] [PROXY] setProxy OK on partition: webview
+[2026-07-03T22:02:45.152Z] [PROXY] setProxy OK on partition: webview
+[2026-07-03T22:02:45.153Z] [PROXY] Proxy auth handler registered (username: 14a56d09e7b7d)
+[2026-07-03T22:02:45.153Z] [INFO ] Creating main window
+[2026-07-03T22:02:45.233Z] [INFO ] Settings window closed
+[2026-07-03T22:02:45.283Z] [INFO ] get-proxy-config returning useProxy: true
+[2026-07-03T22:02:45.356Z] [INFO ] Main window loaded
+[2026-07-03T22:03:27.508Z] [INFO ] Main window closed
+[2026-07-03T22:03:27.508Z] [INFO ] All windows closed
+[2026-07-03T22:03:32.865Z] [INFO ] App starting, log file: D:\working\autoresume-tool\logs\app-2026-07-03.log
+[2026-07-03T22:03:32.898Z] [INFO ] app ready
+[2026-07-03T22:03:32.978Z] [INFO ] Loaded saved config, useProxy: true
+[2026-07-03T22:03:32.986Z] [PROXY] Applying proxy rules: http=168.158.124.69:12323;https=168.158.124.69:12323 to 3 sessions
+[2026-07-03T22:03:32.993Z] [PROXY] setProxy OK on partition: default
+[2026-07-03T22:03:32.996Z] [PROXY] setProxy OK on partition: webview
+[2026-07-03T22:03:32.998Z] [PROXY] setProxy OK on partition: webview
+[2026-07-03T22:03:32.998Z] [PROXY] Proxy auth handler registered (username: 14a56d09e7b7d)
+[2026-07-03T22:03:32.999Z] [INFO ] Creating settings window
+[2026-07-03T22:03:33.143Z] [INFO ] get-proxy-config returning useProxy: true
+[2026-07-03T22:03:35.068Z] [PROXY] Testing proxy: 168.158.124.69:12323
+[2026-07-03T22:03:35.714Z] [PROXY] Test succeeded, status: 407
+[2026-07-03T22:03:35.715Z] [PROXY] Test failed: net::ERR_TUNNEL_CONNECTION_FAILED
+[2026-07-03T22:03:35.715Z] [ERROR] Uncaught exception: net::ERR_TUNNEL_CONNECTION_FAILED Error: net::ERR_TUNNEL_CONNECTION_FAILED
+    at SimpleURLLoaderWrapper.<anonymous> (node:electron/js2c/browser_init:2:132481)
+    at SimpleURLLoaderWrapper.emit (node:events:509:28)
+[2026-07-03T22:03:41.457Z] [INFO ] Settings window closed
+[2026-07-03T22:03:41.458Z] [INFO ] All windows closed
