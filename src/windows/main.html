@@ -102,21 +102,21 @@
     .fab.active { transform: scale(1.1) rotate(60deg); }
 
     /* ══════════════════════════════════════════════════════════
-       TOOL MODAL — fixed bottom-right, static (non-draggable)
+       TOOL MODAL — centered in the window, static (non-draggable)
     ══════════════════════════════════════════════════════════ */
     .tool-modal {
       display: none;
       position: fixed;
-      bottom: 92px;
-      right: 28px;
-      width: 420px;
-      height: 520px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 740px;
+      height: 500px;
       background: linear-gradient(160deg, #0b1220 0%, #10102a 100%);
       border: 1px solid var(--border-purple);
-      box-shadow: 0 0 40px var(--glow-purple), 0 0 80px rgba(123,47,255,0.1), 0 12px 40px rgba(0,0,0,0.7);
+      box-shadow: 0 0 60px var(--glow-purple), 0 0 120px rgba(123,47,255,0.1), 0 20px 60px rgba(0,0,0,0.8);
       border-radius: var(--radius-lg);
       z-index: 150;
-      display: none;
       flex-direction: column;
       overflow: hidden;
     }
@@ -161,8 +161,36 @@
 
     /* Tab panels */
     .tm-body { flex: 1; overflow: hidden; position: relative; }
-    .tm-panel { position: absolute; inset: 0; padding: 18px; overflow-y: auto; display: none; flex-direction: column; gap: 14px; }
+    .tm-panel { position: absolute; inset: 0; display: none; }
     .tm-panel.active { display: flex; }
+
+    /* Find Links: two-column split */
+    #tab-findLinks {
+      flex-direction: row;
+      gap: 0;
+    }
+
+    /* Left column — controls */
+    .fl-controls {
+      width: 220px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+    }
+
+    /* Right column — drawer */
+    .fl-drawer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 8px;
+      overflow: hidden;
+    }
 
     /* Section label */
     .tm-section-label {
@@ -172,12 +200,12 @@
 
     /* Find Links action button */
     .find-links-btn {
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      width: 100%; padding: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 12px 10px;
       background: linear-gradient(135deg, rgba(0,212,255,0.08) 0%, rgba(123,47,255,0.08) 100%);
       border: 1px solid var(--border-purple);
       border-radius: var(--radius); cursor: pointer; font-family: var(--font-mono);
-      font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+      font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
       color: var(--cyan); transition: var(--transition);
     }
     .find-links-btn:hover {
@@ -185,17 +213,22 @@
       border-color: var(--cyan);
       box-shadow: 0 0 16px var(--glow-cyan);
     }
-    .find-links-btn .btn-icon { font-size: 18px; }
+    .find-links-btn .btn-icon { font-size: 16px; }
 
-    /* Drawer — results area */
+    /* Drawer header label */
+    .drawer-header {
+      font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* Results area — fills the right drawer */
     .results-drawer {
       flex: 1;
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.35);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 12px;
       overflow-y: auto;
-      min-height: 200px;
       font-size: 11px;
       color: var(--text-muted);
       letter-spacing: 0.5px;
@@ -211,7 +244,7 @@
     /* Cookie status bar */
     .cookie-status {
       display: flex; align-items: center; gap: 8px;
-      padding: 8px 12px; border-radius: var(--radius);
+      padding: 7px 10px; border-radius: var(--radius);
       background: rgba(0,0,0,0.3); border: 1px solid var(--border);
       font-size: 10px; letter-spacing: 1px;
     }
@@ -222,7 +255,7 @@
     /* Generate Resume tab placeholder */
     .coming-soon {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 100%; gap: 12px; opacity: 0.5;
+      height: 100%; width: 100%; gap: 12px; opacity: 0.5;
     }
     .coming-soon .cs-icon { font-size: 36px; }
     .coming-soon .cs-text { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
@@ -349,21 +382,29 @@
       <!-- Tab: Find Links -->
       <div class="tm-panel active" id="tab-findLinks">
 
-        <div class="cookie-status" id="cookieStatus">
-          <span class="dot"></span>
-          <span id="cookieStatusText">Cookie not loaded — click Find Links to fetch</span>
+        <!-- Left: controls -->
+        <div class="fl-controls">
+          <div class="tm-section-label">Session</div>
+          <div class="cookie-status" id="cookieStatus">
+            <span class="dot"></span>
+            <span id="cookieStatusText">Not loaded</span>
+          </div>
+
+          <div class="tm-section-label" style="margin-top:4px">Action</div>
+          <button class="find-links-btn" id="btnFindLinks">
+            <span class="btn-icon">&#x1F517;</span>
+            <span>Find Links</span>
+          </button>
         </div>
 
-        <button class="find-links-btn" id="btnFindLinks">
-          <span class="btn-icon">&#x1F517;</span>
-          <span>Find Links from Jobright</span>
-        </button>
-
-        <div class="tm-section-label">Results</div>
-        <div class="results-drawer" id="resultsDrawer">
-          <div class="results-placeholder">
-            <span class="icon">&#x1F50D;</span>
-            <span>No results yet — click Find Links to begin</span>
+        <!-- Right: results drawer -->
+        <div class="fl-drawer">
+          <div class="drawer-header">Results</div>
+          <div class="results-drawer" id="resultsDrawer">
+            <div class="results-placeholder">
+              <span class="icon">&#x1F50D;</span>
+              <span>Click "Find Links" to begin</span>
+            </div>
           </div>
         </div>
 
