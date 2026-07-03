@@ -28,6 +28,17 @@ process.on('unhandledRejection', (reason) => {
 
 logger.info('App starting, log file:', logFile);
 
+// ── Global proxy auth handler (covers ALL sessions incl. webview partitions) ──
+// Must be registered before app.whenReady — signature is 5 params.
+app.on('login', (event, webContents, request, authInfo, callback) => {
+  logger.proxy('app.on(login) — isProxy:', authInfo.isProxy, 'host:', authInfo.host);
+  if (authInfo.isProxy) {
+    logger.proxy('Providing credentials from currentProxyConfig, user:', currentProxyConfig.username);
+    event.preventDefault();
+    callback(currentProxyConfig.username || '', currentProxyConfig.password || '');
+  }
+});
+
 // ── State ─────────────────────────────────────────────────────
 let store;
 let settingsWin = null;
@@ -60,7 +71,11 @@ async function getStore() {
 
 // ── Proxy ─────────────────────────────────────────────────────
 async function applyProxy(config) {
-  // Must apply to defaultSession AND every webview partition
+  // Keep currentProxyConfig in sync so the global app.on('login') handler
+  // always has the latest credentials when webviews trigger auth challenges.
+  currentProxyConfig = config;
+
+  // Must set proxy rules on defaultSession AND every webview partition.
   const sessions = [
     session.defaultSession,
     ...WEBVIEW_PARTITIONS.map(p => session.fromPartition(p)),
@@ -73,27 +88,13 @@ async function applyProxy(config) {
       await sess.setProxy({ proxyRules });
       logger.proxy('setProxy OK on partition:', sess === session.defaultSession ? 'default' : 'webview');
     }
-
-    // Wire credential handler on each session.
-    // IMPORTANT: session login event signature is (event, webContents, authInfo, callback) — 4 params.
-    for (const sess of sessions) {
-      sess.removeAllListeners('login');
-      sess.on('login', (event, webContents, authInfo, callback) => {
-        logger.proxy('Session login event — isProxy:', authInfo.isProxy, 'host:', authInfo.host);
-        if (authInfo.isProxy) {
-          logger.proxy('Providing proxy credentials for:', authInfo.host);
-          event.preventDefault();
-          callback(config.username || '', config.password || '');
-        }
-      });
-    }
-    logger.proxy('Proxy auth handlers registered (username:', config.username + ')');
+    logger.proxy('Auth will be handled by global app.on(login) — user:', config.username);
   } else {
     logger.proxy('Clearing proxy on', sessions.length, 'sessions');
     for (const sess of sessions) {
-      sess.removeAllListeners('login');
       await sess.setProxy({ proxyRules: '' });
     }
+    logger.proxy('Proxy cleared');
   }
 }
 
@@ -171,15 +172,10 @@ ipcMain.handle('test-proxy', async (event, config) => {
   return new Promise((resolve) => {
     const req = net.request({ method: 'HEAD', url: 'https://www.google.com', session: testSession });
 
-    // net.request login event: (authInfo, callback) — no event.preventDefault() needed
+    // net.request login fires with (authInfo, callback) — 2 params only
     req.on('login', (authInfo, callback) => {
-      logger.proxy('Test req auth challenge — isProxy:', authInfo.isProxy, 'host:', authInfo.host);
-      if (authInfo.isProxy) {
-        logger.proxy('Providing test credentials');
-        callback(config.username || '', config.password || '');
-      } else {
-        callback('', '');
-      }
+      logger.proxy('Test req auth — isProxy:', authInfo.isProxy, 'host:', authInfo.host);
+      callback(config.username || '', config.password || '');
     });
 
     const timeout = setTimeout(() => {
