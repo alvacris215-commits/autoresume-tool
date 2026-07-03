@@ -1,1 +1,12 @@
-// preload stub — context bridge added in Task 3
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  saveProxyConfig:  (config)  => ipcRenderer.invoke('save-proxy-config', config),
+  testProxy:        (config)  => ipcRenderer.invoke('test-proxy', config),
+  launchMainWindow: ()        => ipcRenderer.send('launch-main-window'),
+  getProxyConfig:   ()        => ipcRenderer.invoke('get-proxy-config'),
+  toggleProxy:      (enabled) => ipcRenderer.invoke('toggle-proxy', { enabled }),
+  minimize:         ()        => ipcRenderer.send('window-minimize'),
+  maximize:         ()        => ipcRenderer.send('window-maximize'),
+  close:            ()        => ipcRenderer.send('window-close'),
+});
