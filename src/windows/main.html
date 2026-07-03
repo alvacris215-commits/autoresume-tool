@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Proxy Browser</title>
+  <link rel="stylesheet" href="../styles/theme.css">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Main titlebar ── */
+    .main-titlebar {
+      display: flex;
+      align-items: center;
+      height: var(--titlebar-h);
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+      flex-shrink: 0;
+      -webkit-app-region: drag;
+    }
+    .tb-left {
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 10px;
+      flex: 1;
+    }
+    .tb-app-name {
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent-glow);
+    }
+    .tb-center {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      -webkit-app-region: no-drag;
+    }
+    .tb-right {
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 10px;
+      flex: 1;
+      justify-content: flex-end;
+      -webkit-app-region: no-drag;
+    }
+
+    /* ── Split container ── */
+    .split-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Individual panels ── */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 200px;
+    }
+    #leftPanel  { flex: 0 0 50%; }
+    #rightPanel { flex: 1; }
+
+    /* ── Divider ── */
+    .divider-drag {
+      width: 4px;
+      background: var(--border);
+      cursor: col-resize;
+      flex-shrink: 0;
+      transition: background var(--transition);
+      position: relative;
+    }
+    .divider-drag:hover,
+    .divider-drag.dragging {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    /* ── Webviews ── */
+    webview {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #000;
+    }
+
+    /* ── Reload button in panel header ── */
+    .reload-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+      border-radius: var(--radius);
+      transition: var(--transition);
+      -webkit-app-region: no-drag;
+      line-height: 1;
+    }
+    .reload-btn:hover {
+      color: var(--accent);
+      text-shadow: 0 0 6px var(--accent-glow);
+    }
+
+    /* ── Loading bar ── */
+    .loading-bar {
+      height: 2px;
+      width: 0;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent-glow);
+      transition: width 0.3s, opacity 0.5s;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+    .panel-header { position: relative; }
+
+    /* ── Stub modal (hidden, Phase 2) ── */
+    .modal-stub {
+      display: none;
+      position: fixed;
+      top: 80px;
+      right: 80px;
+      width: 320px;
+      min-height: 200px;
+      background: var(--bg-panel);
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 24px var(--accent-glow);
+      border-radius: var(--radius);
+      z-index: 200;
+    }
+    .modal-stub.visible { display: block; }
+    .modal-stub-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      cursor: move;
+    }
+    .modal-stub-body {
+      padding: 20px 14px;
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body class="grid-bg">
+
+  <!-- Main Titlebar -->
+  <div class="main-titlebar">
+    <div class="tb-left">
+      <span class="tb-app-name">&#x25A0; Proxy Browser</span>
+    </div>
+
+    <div class="tb-center">
+      <span class="status-dot" id="proxyDot"></span>
+      <span id="proxyStatusLabel">DIRECT</span>
+      <label class="toggle-wrap" style="margin-left:8px">
+        <span class="toggle-label">PROXY</span>
+        <div class="toggle-switch">
+          <input type="checkbox" id="proxyToggle">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </div>
+      </label>
+    </div>
+
+    <div class="tb-right">
+      <button class="titlebar-btn" id="btnMin" title="Minimize">&#x2013;</button>
+      <button class="titlebar-btn" id="btnMax" title="Maximize">&#x25A1;</button>
+      <button class="titlebar-btn close" id="btnClose" title="Close">&#x2715;</button>
+    </div>
+  </div>
+
+  <!-- Split Panels -->
+  <div class="split-container" id="splitContainer">
+
+    <!-- Left: ChatGPT -->
+    <div class="panel" id="leftPanel">
+      <div class="panel-header">
+        <span class="panel-title">&#x25B6; ChatGPT</span>
+        <button class="reload-btn" id="reloadLeft" title="Reload">&#x27F3;</button>
+        <div class="loading-bar" id="loadingLeft"></div>
+      </div>
+      <webview
+        id="wvLeft"
+        src="https://chatgpt.com"
+        partition="persist:chatgpt"
+        useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        allowpopups="true"
+      ></webview>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider-drag" id="divider"></div>
+
+    <!-- Right: Jobright -->
+    <div class="panel" id="rightPanel">
+      <div class="panel-header">
+        <span class="panel-title">&#x25B6; Jobright</span>
+        <button class="reload-btn" id="reloadRight" title="Reload">&#x27F3;</button>
+        <div class="loading-bar" id="loadingRight"></div>
+      </div>
+      <webview
+        id="wvRight"
+        src="https://jobright.ai"
+        partition="persist:jobright"
+        useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        allowpopups="true"
+      ></webview>
+    </div>
+
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fabBtn" title="Open Panel">+</button>
+
+  <!-- Stub Modal (Phase 2 placeholder) -->
+  <div class="modal-stub" id="modalStub">
+    <div class="modal-stub-header" id="modalHeader">
+      <span>&#x25FC; PANEL</span>
+      <button class="reload-btn" id="closeModal">&#x2715;</button>
+    </div>
+    <div class="modal-stub-body">
+      &#x25B6; Feature coming in Phase 2
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
