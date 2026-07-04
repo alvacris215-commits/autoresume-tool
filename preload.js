@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   maximize:         ()        => ipcRenderer.send('window-maximize'),
   close:            ()        => ipcRenderer.send('window-close'),
   getJobrightCookies: ()      => ipcRenderer.invoke('get-jobright-cookies'),
+  logJson:            (label, data) => ipcRenderer.invoke('log-json', { label, data }),
 });

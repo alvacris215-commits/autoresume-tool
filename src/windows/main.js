@@ -163,133 +163,86 @@ document.getElementById('alertConfirm').addEventListener('click', async () => {
       return;
     }
     window._lastCookies = cookies;
+
+    // Build search URL from current Jobright page — preserves all filters + sortCondition
+    const currentPageUrl = wvRight.getURL ? wvRight.getURL() : 'https://jobright.ai/jobs/search';
+    let searchUrl;
+    try {
+      const u = new URL(currentPageUrl);
+      // Force sortCondition=1 (most recent) and set position=0
+      u.searchParams.set('sortCondition', '1');
+      u.searchParams.set('position', '0');
+      searchUrl = u.toString();
+    } catch (_) {
+      searchUrl = currentPageUrl;
+    }
+
     setCookieStatus('ready', `Session active — ${cookies.length} cookies`);
-    resultsDrawer.innerHTML = '<span class="spinner"></span> Scraping external job links...';
+    resultsDrawer.innerHTML = '<span class="spinner"></span> Fetching Jobright search API...';
 
-    // Grab the current URL so the script inside the webview can use its query params
-    const currentPageUrl = wvRight.getURL ? wvRight.getURL() : 'https://jobright.ai';
-
-    // Script runs inside persist:jobright — session cookies auto-attached.
-    // Goal: find external apply links (not jobright.ai, not linkedin.com).
-    // Strategy 1 — look for "Apply" / "Easy Apply" buttons and follow href.
-    // Strategy 2 — look for data attributes that hold external URLs.
-    // Strategy 3 — look for any anchor whose href is an external domain.
+    // Run the GET fetch inside the Jobright webview so session cookies are auto-attached
     const fetchScript = `
 (async () => {
-  const MAX = ${maxLinks};
-  const pageUrl = ${JSON.stringify(currentPageUrl)};
-
-  // Helpers
-  const isExternal = href => {
-    try {
-      const u = new URL(href);
-      const h = u.hostname.toLowerCase();
-      // exclude jobright itself, linkedin, and blank/javascript links
-      return u.protocol.startsWith('http') &&
-             !h.includes('jobright') &&
-             !h.includes('linkedin') &&
-             !h.includes('javascript');
-    } catch(_) { return false; }
-  };
-
-  const seen = new Set();
-  const jobs = [];
-
-  const addJob = (url, title, company) => {
-    if (!url || seen.has(url) || !isExternal(url)) return;
-    seen.add(url);
-    jobs.push({
-      title:   (title   || '').trim().replace(/\\s+/g, ' ').split('\\n')[0].trim(),
-      company: (company || '').trim().replace(/\\s+/g, ' ').split('\\n')[0].trim(),
-      url,
-    });
-  };
-
-  // Strategy 1: data attributes that hold external apply URLs
-  document.querySelectorAll('[data-apply-url],[data-external-url],[data-job-url],[data-url]').forEach(el => {
-    const url = el.dataset.applyUrl || el.dataset.externalUrl || el.dataset.jobUrl || el.dataset.url;
-    const card = el.closest('[class*="card"],[class*="job"],[class*="item"],[class*="posting"]');
-    const title   = card?.querySelector('[class*="title"],h2,h3,h4')?.textContent || '';
-    const company = card?.querySelector('[class*="company"],[class*="employer"]')?.textContent || '';
-    addJob(url, title, company);
+  const url = ${JSON.stringify(searchUrl)};
+  const res = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Accept': 'application/json, text/plain, */*',
+      'X-Requested-With': 'XMLHttpRequest',
+    }
   });
-
-  // Strategy 2: <a> tags — external href + sibling context for title/company
-  document.querySelectorAll('a[href]').forEach(a => {
-    const href = a.href;
-    if (!isExternal(href)) return;
-    const card    = a.closest('[class*="card"],[class*="job"],[class*="item"],[class*="posting"]');
-    const titleEl = card?.querySelector('[class*="title"],h2,h3,h4') || a;
-    const compEl  = card?.querySelector('[class*="company"],[class*="employer"]');
-    addJob(href, titleEl.textContent, compEl?.textContent || '');
-  });
-
-  // Strategy 3: try Jobright API with current page query params
-  if (jobs.length < MAX) {
-    try {
-      const q = new URL(pageUrl).search;
-      const apiPaths = [
-        '/api/v2/job/list' + q,
-        '/api/jobs/list'   + q,
-      ];
-      for (const path of apiPaths) {
-        const r = await fetch(path, {
-          credentials: 'include',
-          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        if (!r.ok) continue;
-        const d = await r.json();
-        const raw = d.data || d.jobs || d.items || d.results || [];
-        if (!Array.isArray(raw) || !raw.length) continue;
-        raw.forEach(j => {
-          const url = j.externalUrl || j.applyUrl || j.externalApplyUrl || j.jobUrl || '';
-          addJob(url, j.title || j.jobTitle || '', j.company || j.companyName || '');
-        });
-        if (jobs.length) break;
-      }
-    } catch(_) {}
+  const status = res.status;
+  const contentType = res.headers.get('content-type') || '';
+  let body;
+  if (contentType.includes('application/json')) {
+    body = await res.json();
+  } else {
+    body = await res.text();
   }
-
-  return { jobs: jobs.slice(0, MAX), total: jobs.length };
+  return { status, contentType, body };
 })()
     `;
 
-    const result = await wvRight.executeJavaScript(fetchScript);
+    const raw = await wvRight.executeJavaScript(fetchScript);
 
-    if (!result || !result.jobs || result.jobs.length === 0) {
-      setCookieStatus('error', 'No external links found on this page');
-      resultsDrawer.innerHTML = '<div class="results-placeholder"><span class="icon">&#x1F50D;</span><span>No external apply links found. Navigate to the Jobright job list first, then try again.</span></div>';
+    // Log the full raw response to logs/ so we can inspect the structure
+    const logResult = await window.electronAPI.logJson(
+      `Jobright search API — status ${raw.status} — ${searchUrl}`,
+      raw.body
+    );
+
+    if (raw.status !== 200) {
+      setCookieStatus('error', `API returned ${raw.status}`);
+      resultsDrawer.innerHTML = `
+        <div class="results-placeholder">
+          <span class="icon">&#x26A0;</span>
+          <span>API returned HTTP ${raw.status}.<br>Raw response logged to:<br>
+            <span style="color:var(--cyan);word-break:break-all">${escHtml(logResult.file || 'logs/')}</span>
+          </span>
+        </div>`;
       return;
     }
 
-    window._lastJobs = result.jobs;
-    const truncNote = result.total > maxLinks ? ` (capped at ${maxLinks})` : '';
-    setCookieStatus('ready', `${result.jobs.length} external links${truncNote}`);
-
-    const rows = result.jobs.map((j, i) => `
-      <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
-        <div style="display:flex;align-items:flex-start;gap:8px">
-          <span style="color:var(--text-dim);font-size:10px;min-width:18px;padding-top:2px">${i + 1}</span>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-              ${escHtml(new URL(j.url).hostname)}
-            </div>
-            <a href="${escHtml(j.url)}" title="${escHtml(j.url)}"
-               onclick="event.preventDefault();navigator.clipboard.writeText('${escHtml(j.url)}')"
-               style="color:var(--cyan);text-decoration:none;font-size:11px;display:block;
-                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:copy">
-              ${escHtml(j.title || j.url)}
-            </a>
-            ${j.company ? `<span style="font-size:10px;color:var(--text-muted)">${escHtml(j.company)}</span>` : ''}
-          </div>
-        </div>
-      </div>`).join('');
-
+    setCookieStatus('ready', `Response logged — HTTP ${raw.status}`);
     resultsDrawer.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:10px;letter-spacing:1px;color:var(--teal)">&#x2714; ${result.jobs.length} external links — click to copy</span>
-      </div>
-      ${rows}`;
+      <div style="padding:10px;line-height:1.8;font-size:11px">
+        <div style="color:var(--teal);margin-bottom:8px">&#x2714; Response received — HTTP ${raw.status}</div>
+        <div style="color:var(--text-muted);margin-bottom:4px">Log file:</div>
+        <div style="color:var(--cyan);word-break:break-all;margin-bottom:12px">${escHtml(logResult.file || 'logs/')}</div>
+        <div style="color:var(--text-muted);margin-bottom:4px">Content-Type:</div>
+        <div style="color:var(--text);margin-bottom:12px">${escHtml(raw.contentType)}</div>
+        <div style="color:var(--text-muted);margin-bottom:4px">Top-level keys in response:</div>
+        <div style="color:var(--gold)">
+          ${typeof raw.body === 'object' && raw.body !== null
+            ? Object.keys(raw.body).map(k => `<span style="margin-right:10px">${escHtml(k)}</span>`).join('')
+            : escHtml(String(raw.body).slice(0, 200))
+          }
+        </div>
+        <div style="margin-top:12px;color:var(--text-muted);font-size:10px">
+          Check the log file and tell me which field contains the job links.
+        </div>
+      </div>`;
     resultsDrawer.classList.add('has-results');
 
   } catch (err) {

@@ -201,6 +201,20 @@ ipcMain.handle('test-proxy', async (event, config) => {
   });
 });
 
+ipcMain.handle('log-json', async (event, { label, data }) => {
+  const json = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  logger.info(`[LOG-JSON] ${label} (${json.length} chars)`);
+  const dumpFile = path.join(__dirname, 'logs', `json-dump-${Date.now()}.json`);
+  try {
+    fs.writeFileSync(dumpFile, `// ${label}\n${json}\n`);
+    logger.info('[LOG-JSON] Written to:', dumpFile);
+    return { ok: true, file: dumpFile };
+  } catch (e) {
+    logger.error('[LOG-JSON] Write failed:', e.message);
+    return { ok: false, error: e.message };
+  }
+});
+
 ipcMain.handle('get-jobright-cookies', async () => {
   const jobrightSession = session.fromPartition('persist:jobright');
   const cookies = await jobrightSession.cookies.get({ url: 'https://jobright.ai' });
